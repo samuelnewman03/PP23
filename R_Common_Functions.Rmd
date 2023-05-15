@@ -1,0 +1,525 @@
+---
+title: "R Function Summary"
+date: "Last Updated: May 14, 2023"
+output:
+  html_document:
+    toc: yes
+    toc_depth: '3'
+    df_print: paged
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+# Purpose
+This file contains commonly used R functions for data analysis, data management, and visualization. All code examples will use iris, a pre-loaded R data set. Type ?iris in the console to learn more information about the dataset. 
+
+# Data Management 
+
+## 1. factor()
+Package: base R
+```{r}
+#Explanation: Specifies hierarchy among a set of values or a column. The code below sets setosa to the 1st level, versicolor to the 2nd, and virinica to the 3rd level. Factor is  helpful when dealing with categorical since it assigns numerical levels. 
+
+# Convert the Species column to a factor.
+iris$Species <- factor(iris$Species)
+
+# Get the levels of the Species factor
+levels(iris$Species)
+
+# Check the class of the Species column
+class(iris$Species)
+```
+## 2. for()
+Package: base R
+```{r}
+#Explanation: For loops performs a set of operations on each value in a sequence. 
+
+#Loop over the columns of the iris dataset
+for (col in names(iris)) {
+    # Calculate the mean of the column
+    col_mean <- mean(iris[[col]])
+    # Print the column name and mean
+    cat("Mean of", col, ":", col_mean, "\n")
+  }
+```
+
+## 3. function()
+Package: base R 
+```{r}
+#Explanation: Makes a new function that can execute a specific task through a combination of specified functions
+
+# Define a function that calculates the mean of a numeric column in a data frame
+mean_column <- function(df, column) {
+  if (!is.numeric(df[[column]])) {
+    stop("Column must be numeric")
+  }
+  return(mean(df[[column]]))
+}
+
+# Calculate the mean of the Sepal.Length column using the mean_column() function
+sepal_length_mean <- mean_column(iris, "Sepal.Length")
+sepal_length_mean
+```
+
+## 4. ifelse()
+Package: base R 
+```{r}
+#Explanation: If a condition is met, then a action or function is executed. If the condition is not met, a different action or function is executed.
+
+# Create a new column called "SpeciesCode" based on the "Species" column
+iris$SpeciesCode <- ifelse(iris$Species == "setosa", 1,
+                           ifelse(iris$Species == "versicolor", 2, 3))
+
+# Print the first 10 rows of the iris dataset
+head(iris, 10)
+```
+
+
+## 5. is.na()
+Package: base R 
+```{r}
+#Explanation: Identifies if value is missing (NA) or not
+
+#Count all missing values in iris
+sum(is.na(iris))
+
+#Count all non-missing values in iris
+sum(!is.na(iris)) # ! = not
+```
+## 6. lapply() 
+Package: base R 
+```{r}
+#Explanation: Applies a function on each column or value of a dataset and returns a list
+
+# Apply the `mean()` function to each numeric column of the iris dataset
+means <- lapply(iris[,1:4], mean)
+
+# Print the resulting list of means
+print(means)
+```
+## 7. merge()
+Package: base R 
+```{r}
+#Explanation: Combines two dataframes which have one column with identical values
+
+#Normally you merge two different datasets, but we will merge iris with itself
+merged_iris <- merge(iris, iris, #names of two datasets
+                     by = c("Species"), #shared column between two datasets
+                     suffixes = c("_1", "_2")) #adding suffixes to distinguish orginal values 
+
+head(merged_iris) #see the first 6 rows
+```
+
+## 8. read.csv()
+Package: base R 
+```{r}
+#Explanation: Loads .csv files into R 
+
+#iris2 <- read.csv("name_of_file.csv")
+#make sure your working directory is set to your file location. 
+
+```
+
+## 9. rename()
+Package: dplyr 
+```{r}
+#Explanation: Changes column names
+library(dplyr) #part of tidyverse
+
+iris_renamed <- iris %>% rename(SL = Sepal.Length, #Changed Sepal.Length to SL
+                                SW = Sepal.Width,  #Changed Sepal.Width to SW
+                                PL = Petal.Length, #Changed Petal.Length to PL
+                                PW = Petal.Width,  #Changed Petal.Width to PW
+                                Class = Species)   #Changed Species to Class
+iris_renamed
+```
+
+## 10. sapply()
+Package: base R 
+```{r}
+#Explanation: Applies a function on each column or value of a dataset and returns a vector or matrix
+
+# Apply the mean function to each column of the dataset
+column_means <- sapply(X = iris, FUN = mean, na.rm = TRUE)
+
+# View the column means
+column_means #Species is categorical, so NA is returned
+```
+
+## 11. writeLines
+Package: base R 
+```{r}
+#Explanation: Writes one or more character strings to text. Useful in working with strings.  
+
+# Write the first 5 rows of the dataset to a text file
+writeLines(colnames(iris))
+
+```
+
+## 12. read.xlsx ()
+Package: readxl
+```{r}
+#Explanation: Loads .xlsx files into R 
+library(readxl)
+
+# Read the Excel file
+# example <- read.xlsx("name_of_your_file.xlsx", 
+#                      sheetIndex = 1, #will read only the first sheet
+#                      startRow = 2, #will start reading the data at the 2nd row
+#                      endRow = 100,  #will stop reading the data the 100th row
+#                      colIndex = 1:5) #will only read columns 1-5
+
+```
+
+## 13. write.xlsx 
+Package: readxl
+```{r}
+#Explanation: Saves dataframe as an .xlsx file type
+# write.xlsx(df, #name of object
+#            file = "example.xlsx", #name that of file being created
+#            sheetName = "Sheet1",  #name that of sheet being created
+#            row.names = FALSE)     #not including row names
+
+```
+
+## 14. str_c() 
+Package: stringr
+```{r}
+#Explanation: Combines multiple values (characters, special characters, and/or numbers) together
+
+library(stringr)
+
+# Concatenate the species and petal width columns of the iris data frame
+iris$Species_PetalWidth <- str_c(iris$Species, " - ", iris$Petal.Width)
+
+# View the first few rows of the modified iris data frame
+head(iris)
+```
+
+## 15. str_match()  
+Package: stringr 
+```{r}
+#Explanation: Locates and stores all occurrences of specificed characters, special characters, or numbers within a cell or cells.
+library(stringr)
+
+# Extract the petal length from the iris data frame using str_match
+iris$Petal.Length.Extracted <- str_match(iris$Petal.Length, #variable
+                                         "\\d+\\.\\d+") #searching for a digit (d), followed by a period (.), and followed by another digit (d)
+
+# View the first few rows of the modified iris data frame
+head(iris)
+```
+
+## 16. str_replace ()
+Package: stringr
+```{r}
+#Explanation: Replaces characters, special characters, or numbers in a column (or cell) with specified characters, special characters, or numbers
+library(stringr)
+
+# Replace the species names in the iris data frame with shorter names
+iris$Species <- str_replace(iris$Species, #variable of interest
+                            "versicolor", #character to search for 
+                            "vers")       #replacement text
+
+# View the change name 
+table(iris$Species)
+```
+
+## 17. str_view_all() 
+Package: stringr
+```{r}
+#Explanation: Shows all occurances of specified characters, special characters, or numbers within a cell or cells
+library(stringr)
+
+# Use str_view_all to visualize the matches of the "setosa" pattern in the Species column of the iris data frame
+str_view_all(iris$Species, "setosa")
+```
+
+## 18. arrange() 
+Package: dplyr
+```{r}
+#Explanation: Sorts rows in a dataframe based on one or more columns
+library(tidyverse) #dplyr is part of tidyverse
+
+# Sort the iris data frame by Petal.Length in ascending order
+iris_sorted <- arrange(iris, Petal.Length)
+
+# View the first few rows of the sorted data frame
+head(iris_sorted)
+```
+
+## 19. bind_cols 
+Package: dplyr 
+```{r}
+#Explanation: Adds columns of a dataframe to another dataframe
+library(tidyverse) #dplyr is part of tidyverse
+
+# Create a new data frame with two columns
+new_data <- data.frame(Sepal.Width = runif(150, 2.5, 4),
+                       Sepal.Length = runif(150, 4, 7))
+
+# Combine the iris and new_data data frames by column
+iris_combined <- bind_cols(iris, new_data)
+
+# View the first few rows of the combined data frame
+head(iris_combined)
+
+```
+
+## 20. bind_rows 
+Package: dplyr
+```{r}
+#Explanation: Adds rows of a dataframe to another dataframe
+library(tidyverse) #dplyr is part of tidyverse
+
+# Create a new data frame with two rows
+new_data <- data.frame(Sepal.Width = c(3.5, 2.8),
+                       Sepal.Length = c(6.2, 5.1),
+                       Petal.Length = c(4.3, 1.5),
+                       Petal.Width = c(1.3, 0.3),
+                       Species = c("versicolor", "setosa"))
+
+# Combine the iris and new_data data frames by row
+iris_combined <- bind_rows(iris, new_data)
+
+# View the last few rows of the combined data frame
+tail(iris_combined)
+```
+
+## 21. filter()
+Package: dplyr
+```{r}
+#Explanation: Searches for values that fit one or more user-defined conditions
+library(tidyverse) #dplyr is part of tidyverse
+
+# Extract all rows where Species is "setosa"
+setosa <- filter(iris, #df
+                 Species == #variable
+                   "setosa") #condition to search for
+
+# Extract all rows where Sepal.Length is greater than 6.0
+long_sepal <- filter(iris, Sepal.Length > 6.0)
+
+# Extract all rows where Petal.Length is between 4.5 and 5.0
+long_petal <- filter(iris, Petal.Length >= 4.5, Petal.Length <= 5.0)
+```
+
+## 22. mutate() 
+Package: dplyr
+```{r}
+#Explanation: Creates a new column
+library(tidyverse) #dplyr is part of tidyverse
+
+# Add a new column that is the product of Sepal.Length and Sepal.Width
+iris <- mutate(iris, #dataframe
+               sepal_area = #name of new column
+                 Sepal.Length * Sepal.Width) #formula to create values for new column
+
+# Add a new column that is the ratio of Petal.Length to Petal.Width
+iris <- mutate(iris, petal_ratio = Petal.Length / Petal.Width) 
+
+# Add a new column that is the average of Sepal.Length and Petal.Length
+iris <- mutate(iris,avg_length = (Sepal.Length + Petal.Length) / 2) 
+```
+
+## 23. select() 
+Package: dplyr
+```{r}
+#Explanation: Selects column(s) within a dataframe. Helpful when making a new dataframe with less columns.
+library(tidyverse) #dplyr is part of tidyverse
+
+# Select the columns Sepal.Length, Sepal.Width, and Species
+iris_select <- select(iris, #dataframe 
+                      Sepal.Length, Sepal.Width, Species) #variables 
+
+# Select all columns except Sepal.Length and Sepal.Width
+iris_select <- iris %>% select(-Sepal.Length, -Sepal.Width) #with pipes
+
+# Select columns Petal.Length and Petal.Width, and all columns starting with Sepal
+iris_select <- select(iris, Petal.Length, Petal.Width, starts_with("Sepal"))
+```
+
+# Descriptive Analysis 
+
+## 24. lm() 
+Package: base R 
+```{r}
+#Explanation: Regresses one or more columns onto another column.
+
+# Fit a linear regression model of Petal.Length on Sepal.Length and Sepal.Width
+model <- lm(Petal.Length ~ #dependent variables 
+              Sepal.Length + Sepal.Width, #independent variables
+            data = iris) #data
+
+# Print the summary of the model
+summary(model)
+```
+
+## 25. prop.table() 
+Package: base R 
+```{r}
+#Explanation: Converts a frequency or contignecy table into proportions 
+
+# Compute the proportions of each species in the iris data set
+prop.table(table(iris$Species))
+
+# Compute the proportions of each species by combining the Species and Petal.Width variables
+prop.table(table(iris$Species, iris$Petal.Width), margin = 1)
+```
+
+## 26. Summary() 
+Package: base R 
+```{r}
+#Explanation: Lists the quarantines, median, mean, and range of one or more columns
+
+# Obtain a summary of the dataset 
+summary(iris)
+```
+
+## 27. table() 
+Package: base R 
+```{r}
+#Explanation: Creates a table that shows the amount of times a value is repeated in one or more columns
+
+#Create table showing the count of 3 Species
+table(iris$Species)
+
+```
+
+## 28. xtabs() 
+Package: base R 
+```{r}
+#Explanation: Creates a contingency table which shows the count for two or more variables
+
+# Create a contingency table of Species and Sepal.Width
+xtabs(~ Species + Sepal.Width, #two variables
+      data = iris) #dataset
+```
+
+## 29. aggregate() 
+Package: base R 
+```{r}
+#Explanation: Groups data by one or more variables and then applies a function (i.e. mean)  
+
+# Summarize Sepal.Length by Species
+aggregate(Sepal.Length ~ Species, #variables
+          data = iris, #dataset
+          FUN = mean) #function
+```
+
+## 30. tab1() 
+Package: epiDisplay
+```{r}
+#Explanation: Creates a table that shows the frequnecy, percent, and cumulative percent for categorical data
+library(epiDisplay)
+
+tab1(iris$Species)
+```
+
+## 31. tbl_summary()
+Package: gtsummary
+```{r}
+#Explanation: Creates presentation style table that shows the subgroup count, percentages, and total count. 
+library(gtsummary)
+
+#Preloaded dataset 'mtcars' is used since function is better illustrated with this data. 
+
+tbl_summary(mtcars, include = c("mpg", "cyl", "disp"))
+
+```
+
+## 32. count ()
+Package: dplyr
+```{r}
+#Explanation: Counts the number of rows in a dataframe or that number of rows that meet specified criteria
+library(dplyr) #dplyr is part of tidyverse
+
+#Count total observations in dataset
+iris %>%
+  count()
+
+#Count observations by subgroup Species
+iris %>%
+  group_by(Species) %>%
+  count()
+```
+
+## 33. group_by () & summarize ()
+Package: dplyr
+```{r}
+#Explanation: Group_by subgroups a variable. Summarize can apply a variety of statistical functions for the specified groups (mean, count, sum, etc.).
+library(dplyr) #dplyr is part of tidyverse
+
+iris %>%
+  group_by(Species) %>%
+  summarize(mean_sepal_length = mean(Sepal.Length),
+            mean_sepal_width = mean(Sepal.Width),
+            mean_petal_length = mean(Petal.Length),
+            mean_petal_width = mean(Petal.Width))
+
+```
+
+# Visualization
+
+
+## 34. png()
+Package: base R
+```{r}
+#Explanation: Saves plots file type .png
+
+#create simple bar plot of Petal.Length
+barplot(iris$Petal.Length)
+png("iris_boxplot.png") 
+dev.off #Close PNG 
+```
+
+
+## 35. geom_bar
+Package:ggplot2
+```{r}
+#Explanation: Creates a bar chart for two columns
+library(ggplot2) #ggplot2 is part of tidyverse
+
+
+ggplot(data = iris, #data
+       aes( #aes stands for aesthetics
+         x = Species, #variable for x axis
+         fill = Species)) +  #will color bins with subgroups of Species 
+  geom_bar() #creates a bar chart 
+
+```
+
+## 36. geom_point() 
+Package: ggplot2
+```{r}
+#Explanation: Creates a scatter plot for two columns
+library(ggplot2) #ggplot2 is part of tidyverse
+
+ggplot(data = iris, #data 
+       aes(x = Sepal.Length, y = Sepal.Width, #variables for x and y axes
+           color = Species)) + #will color bins with subgroups of Species 
+  geom_point() #creates scatter plot
+```
+
+## 37. scale()
+Package: ggplot2
+```{r}
+#Explanation: Adjusts scale of axes for scatterplots, bar charts, histrograms and other ggplot visuals 
+library(ggplot2) #ggplot2 is part of tidyverse
+
+# Create plot
+ggplot(data = iris, aes(x = Sepal.Length, y = Sepal.Width, color = Species)) +
+  geom_point() +
+  
+# Customize the x-axis scale
+scale_x_continuous(name = "Length (cm)", breaks = seq(4, 8, 0.5), limits = c(4, 8)) +
+  
+# Customize the y-axis scale
+scale_y_continuous(name = "Width (cm)", breaks = seq(2, 5, 0.5), limits = c(2, 5))
+
+
+```

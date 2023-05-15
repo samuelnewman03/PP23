@@ -1,0 +1,639 @@
+---
+title: 'R: Youtube Summary Notes'
+date: 'Last Updated: May 14, 2023'
+output:
+  word_document:
+    toc: yes
+    toc_depth: '3'
+  html_document:
+    toc: yes
+    toc_depth: '3'
+    df_print: paged
+    always_allow_html: yes
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+# Purpose
+This file contains links and notes to Youtube videos describing R functions and concepts. Datasets used in this document are either preloaded in R, or are custom and posted below each header. It is recommended to load/install tidyverse as pipes (%>%) are frequently used, and many packages covered in this document are part of tidyverse. 
+```{r}
+#load tidyverse
+library(tidyverse)
+```
+
+# Visualizations
+
+## Simple Tables
+Package: Base R, Dataset: iris
+
+### Frequency Table:  A frequency table shows the count for one variable
+Video Link: [3:13](https://www.youtube.com/watch?v=9gJJi_HrnCA&t=3m13s)
+```{r}
+table(iris$Species)
+```
+
+### A proportion table shows the proportion for one variable
+Video Link: [7:15](https://www.youtube.com/watch?v=9gJJi_HrnCA&t=7m15s)
+```{r}
+prop.table(table(iris$Species)) 
+```
+
+### Table with percentages 
+Video Link: [5:45](https://www.youtube.com/watch?v=9gJJi_HrnCA&t=5m45s)
+```{r}
+#multiply prop.table formula by 100
+prop.table(table(iris$Species))*100 
+```
+### A contingency table shows the count for two or more variables 
+Video Link: [8:32](https://www.youtube.com/watch?v=9gJJi_HrnCA&t=8m32s)
+```{r}
+#The petal width count for 3 different flower species are shown. 
+xtabs(~Petal.Width +Species, iris) 
+```
+
+## Presentation Summary Tables
+Package: gtsummary, Dataset: CO2
+
+### Install/load gtsummary 
+Video Link: [0:10](https://www.youtube.com/watch?v=gohF7pp2XCg&t=10s)
+```{r}
+library(gtsummary)
+```
+
+### Basic Summary Table
+Video Link: [0:44](https://www.youtube.com/watch?v=gohF7pp2XCg&t=44s)
+```{r}
+CO2 %>% select(!c(Plant,conc)) %>% #Removing ‘Plant’ and ‘conc’ variables
+  tbl_summary()   #creates summary table 
+```
+
+### Summary split by categorical variable 
+Video Link: [1:42](https://www.youtube.com/watch?v=gohF7pp2XCg&t=1m42s)
+```{r}
+CO2 %>% select(!c(Plant,conc)) %>% 
+  tbl_summary(by = Type) #organizes the data by the categorical variable 'Type'
+```
+
+### Summary split by categorical variable with p-values 
+Video Link: [2:13](https://www.youtube.com/watch?v=gohF7pp2XCg&t=2m13s)
+```{r}
+CO2 %>% select(!c(Plant,conc)) %>% 
+  tbl_summary(by = Type) %>% 
+  add_p() # adds p-values to the table 
+```
+
+### Summary including overall, extra heading, and other statistics 
+Video Link: [3:02](https://www.youtube.com/watch?v=gohF7pp2XCg&t=3m02s)
+```{r}
+CO2 %>% select(!c(Plant,conc)) %>% 
+  tbl_summary(by = Type, 
+              statistic = list(all_continuous() ~ "{mean} ({sd})", #adds mean and standard deviation
+              all_categorical() ~ "{n} / {N} ({p}%)" ), #add percentage 
+              digits = all_continuous() ~ 2) %>% #rounds decimal to 2 digits
+  add_overall() %>% #adds total column 
+  modify_spanning_header(c("stat_1", "stat_2") ~ "**Location**") #adds title 'Location'
+```
+### Create crosstab with p-values 
+Video Link: [4:27](https://www.youtube.com/watch?v=gohF7pp2XCg&t=4m27s)
+```{r}
+#Crosstab shows the relationship between two categorical variables 
+
+CO2 %>% #dataset
+  tbl_cross(row = Type, col = Treatment, percent = "cell") %>%  #creates cross tables w/ Type and Treatment 
+    add_p() #adds p-values
+```
+
+## Barplot (1)
+Package: Base R, Dataset: custom 
+
+### Load Custom data 
+Video Link: [0:10](https://www.youtube.com/watch?v=pYbuWU77QkU&t=0m10s)
+```{r}
+values <- c(.4, .75, 0.2, 0.6, 0.5) 
+```
+
+### Make simple barplot
+Video Link: [0:30](https://www.youtube.com/watch?v=pYbuWU77QkU&t=0m30s)
+```{r}
+barplot (values) 
+```
+
+### Add color to barplot 
+Video Link: [1:23](https://www.youtube.com/watch?v=pYbuWU77QkU&t=1m23s)
+```{r}
+#Add color by using the text characters  
+barplot(values, col = "#1b98e0") 
+        
+#Add color by using color name
+barplot(values, col = "darkgreen")
+```
+### Change bar orientation to horizontal 
+Video Link: [2:00](https://www.youtube.com/watch?v=pYbuWU77QkU&t=2m00s)
+```{r}
+barplot(values, horiz = TRUE)
+```
+
+### Add labels to barplot 
+Video Link: [2:27](https://www.youtube.com/watch?v=pYbuWU77QkU&t=2m27s)
+```{r}
+#Create a vector called group that contains that labels for the barplot 
+group <- LETTERS[1:5]
+
+#Assign the new vector to ‘names.arg’
+barplot(values, names.arg = group)
+```
+
+### Creating a stacked bar plot
+Video Link: [3:33](https://www.youtube.com/watch?v=pYbuWU77QkU&t=3m33s)
+```{r}
+# Create matrix called data for the data that includes two different values for each column/label
+ data <- as.matrix(data.frame(  #as.matrix converts the dataframe to a matrix
+   A = c(0.2, 0.4), 
+   B = c(0.3,0.1), 
+   C = c(0.7, 0.1), 
+   D = c(0.1, 0.2),  
+   E = c(0.3, 0.3)))
+# Create row names for the matrix called Group 1 and Group 2 
+rownames(data) <- c ("Group 1", "Group 2")
+
+#Plot stacked bar plot with matrix data with 2 different colors 
+barplot(data, col = c("#1b98e0", "#353436"))
+```
+
+### Add legend to bar plot 
+Video Link: [5:04](https://www.youtube.com/watch?v=pYbuWU77QkU&t=5m04s)
+```{r}
+#legend must be executed with barplot in the same code chunk
+barplot(data, col = c("#1b98e0", "#353436"))
+
+legend("topright",  #location of legend
+       legend = c("Group 1", "Group 2"), #names of legend
+       fill = c("#1b98e0", "#353436"))  #fill colors for legend 
+```
+
+### Grouped barchart (columns side-by-side) 
+Video Link: [6:25](https://www.youtube.com/watch?v=pYbuWU77QkU&t=6m25s)
+```{r}
+#The groups should be some type of categorical data 
+barplot(data, 
+        col = c ("#1b98e0", "#353436"),
+        beside = TRUE) #places columns beside each other 
+```
+
+### Manually grouped barchart: Color subgroups by mean then create grouped barplot
+Video Link: [24:28](https://www.youtube.com/watch?v=Cl9yE_PFV-0&t=24m28s)
+```{r}
+#Using diamonds pre-loaded dataset
+
+#Create object containing mean price by subgroup clarity 
+diamonds_m_cl_co <- aggregate(diamonds, price ~ clarity + color, mean) 
+
+#Plot grouped barplot with object containing subgroups 
+ggplot(diamonds_m_cl_co, aes(x=clarity, y = price, fill = color)) + 
+  geom_bar(stat = "identity",  position = "dodge") #dodge makes barplot grouped. 
+```
+
+## Barplot (2)
+
+### Custom Data and load ggplot2
+Video Link: [7:48](https://www.youtube.com/watch?v=pYbuWU77QkU&t=7m48s)
+```{r}
+#Custom data 
+values <- c(.4, .75, 0.2, 0.6, 0.5) 
+
+#load ggplot2
+library(ggplot2) #automatically loaded with tidyverse 
+```
+
+### Ggplot2 only takes dataframes as input, not matrices like baseR 
+Video Link: [8:09](https://www.youtube.com/watch?v=pYbuWU77QkU&t=8m09s)
+```{r}
+#Dataframe is a slightly different way to store data than a matrix. 
+data_ggp <- data.frame(group, values)
+
+#If unsure of your data type, run ‘typeof(name_of_data)’
+typeof(data_ggp) #should now say dataframe
+
+```
+
+### Create a bar plot in ggplot2
+Video Link: [8:47](https://www.youtube.com/watch?v=pYbuWU77QkU&t=8m47s)
+```{r}
+ggplot(data_ggp, aes(x = group, y = values)) + 
+  geom_bar(stat = "identity") #specifies a bar chart based on our data
+```
+
+## Ordering Bars of a Barplot 
+
+### Custom data 
+Video Link: [0:15](https://www.youtube.com/watch?v=mpHaEP21ZQE&t=0m15s)
+```{r}
+data <- data.frame(
+  x = c("A", "B", "C", "D", "E"),  
+  y = c(0.5, 2, 1.2, -0.2, 0.7))
+```
+
+### Manually ordering bars 
+Video Link: [1:55](https://www.youtube.com/watch?v=mpHaEP21ZQE&t=1m55s) 
+```{r}
+# Create duplicate of data
+data1 <- data 
+
+# Change factor levels of data
+
+#changes the factor ordering to ‘B’, ‘D’, ‘E’, ‘C’, ‘A’
+data1$x <- factor(data1$x, levels = c("B", "D", "E", "C", "A")) 
+
+#Default factor ordering is ‘A’, ‘B’, ‘C’, ‘D’, ‘E’
+```
+
+### Order bars in increasing order 
+Video Link: [3:30](https://www.youtube.com/watch?v=mpHaEP21ZQE&t=3m30s)
+```{r}
+# Step 1: Duplicate  data 
+data2 <- data 
+
+#Step 2: Change factor levels to increasing order ()
+
+#Replace x and y with variable names used in your plot
+data2$x <- factor(data2$x, levels = data2$x[order(data2$y)])
+
+#Step 3: Create plot with new data 
+ ggplot(data2, aes(x, y)) + 
+   geom_bar(stat = "identity")
+```
+
+### Order bars in decreasing order 
+Video Link: [4:30](https://www.youtube.com/watch?v=mpHaEP21ZQE&t=4m30s)
+
+```{r}
+#Step 1: Duplicate data 
+data3 <- data         
+
+#Step 2: Change factor levels to decreasing order 
+ data3$x <- factor(data3$x, levels = data3$x[order(data3$y, decreasing = TRUE)])
+#Replace ‘TRUE’ with ‘FALSE’ to organize in increasing order
+
+#Step 3: Create plot with new data 
+ggplot(data3, aes(x, y)) + 
+  geom_bar(stat = "identity")
+```
+
+## Scatterplots, Changing X-Axis Range, and Facet Layers 
+Package: ggplot2, Dataset: custom 
+
+### Custom data 
+Video Link:[2:22](https://www.youtube.com/watch?v=Cl9yE_PFV-0&t=2m22s)
+```{r}
+data <- data.frame(
+  x = 1:9, 
+  y = c(3, 1, 4, 3, 5, 2, 1, 2, 3), 
+  group = rep(LETTERS[1:3], each = 3))  
+```
+
+### Create base layer for a variety of plots 
+Video Link: [3:22](https://www.youtube.com/watch?v=Cl9yE_PFV-0&t=3m22s)
+```{r}
+#shows just x and y axes, and tick marks
+ggplot(data, aes(x = x, y = y)) 
+```
+
+### Create scatter plot 
+Video Link: [3:55](https://www.youtube.com/watch?v=Cl9yE_PFV-0&t=3m55s)
+```{r}
+ggplot(data, aes(x = x, y = y)) + 
+  geom_point() #specifies  a scatter plot
+
+```
+
+### Scatter plot: Change point size 
+Video Link: [4:45](https://www.youtube.com/watch?v=Cl9yE_PFV-0&t=4m45s)
+```{r}
+ggplot(data, aes(x = x, y = y)) + 
+  geom_point(size =3) #changes point size 
+```
+
+### Scatter plot: Specify the colors by group 
+Video Link: [5:10](https://www.youtube.com/watch?v=Cl9yE_PFV-0&t=5m10s)
+```{r}
+ggplot(data, aes(x = x, y = y, col = group)) + #col = group specifies the color grouping
+  geom_point(size =3) + 
+  theme(legend.position = "none") #removes default legend  
+```
+
+### To save a plot, assign an object to ggplot2 code 
+Video Link: [6:08](https://www.youtube.com/watch?v=Cl9yE_PFV-0&t=6m08s)
+```{r}
+ggp_simple <- ggplot(data, aes(x = x, y = y, col = group)) +
+  geom_point(size =3 ) #this save the plot to ggp_simple
+
+ggp_simple #the plot won't appear unless the object 'ggp_simple' is called 
+```
+
+### Change the x-axis range 
+Video Link: [7:01](https://www.youtube.com/watch?v=Cl9yE_PFV-0&t=7m01s)
+```{r}
+ggp_simple + 
+  scale_x_continuous(limits = c(-3, 15)) #changes the numeric range of x-axis 
+```
+
+### Manually change colors of points by groups 
+Video Link: [7:52](https://www.youtube.com/watch?v=Cl9yE_PFV-0&t=7m52s)
+```{r}
+ggp_simple + 
+  scale_color_manual(
+    breaks = c("A", "B", "C"),  
+    values = c("#1b98e0", #selects three different colors. One for each group A, B, C. 
+               "#353436", 
+               "#e32f08"))
+```
+
+### Add multiple scale layers by adding a ‘+’ between layers 
+Video Link: [8:58](https://www.youtube.com/watch?v=Cl9yE_PFV-0&t=8m58s)
+```{r}
+ggp_simple +  
+  scale_x_continuous(limits = c(-3, 15)) + # the '+' allows multiple layers to be added
+  scale_color_manual(
+    breaks = c("A", "B", "C"),  
+    values = c("#1b98e0", 
+               "#353436", 
+               "#e32f08"))
+```
+
+### Facet layers: Creates side-by-side subplots of a variable or dataset
+Video Link: [9:45](https://www.youtube.com/watch?v=Cl9yE_PFV-0&t=9m45s)
+```{r}
+#Facet layers are helpful when your original plot has too much data 
+ggp_simple +  
+  scale_x_continuous(limits = c(-3, 15)) + 
+  scale_color_manual(
+    breaks = c("A", "B", "C"),  
+    values = c("#1b98e0", 
+               "#353436", 
+               "#e32f08")) + 
+    facet_wrap(group ~ .) + #adds facet layer
+    theme_bw() # changes  graph background from gray to white 
+```
+
+## Density Plots 
+Package: ggplot2, Dataset: diamonds
+
+### Add regression line to facet wrapped subplots 
+Video Link: [18:04](https://www.youtube.com/watch?v=Cl9yE_PFV-0&t=18m04s) 
+```{r}
+ggplot(diamonds, aes(x = price, y = carat)) +
+  geom_point () + 
+facet_wrap(clarity ~ . ) + 
+  geom_smooth(method = "lm", formula = y ~ x) #adds regression line
+```
+
+### Density plot: Helpful plot for showing distribution of a number
+Video Link: [19:44](https://www.youtube.com/watch?v=Cl9yE_PFV-0&t=19m44s) 
+```{r}
+#For density plots only input one column/variable since density will be graphed on the y-axis
+ggplot(diamonds, aes(x = depth)) + #variable is depth
+  geom_density()
+ 
+```
+
+### Density plot: Draw density plots by group 
+Video Link: [20:36](https://www.youtube.com/watch?v=Cl9yE_PFV-0&t=20m36s)
+```{r}
+#‘fill’ colors the area between the density line and the x-axis, as opposed to coloring just the line 
+ggplot(diamonds, aes(x = depth, fill =cut)) + # adds multiple density graphs to plot 
+  geom_density(alpha = .3) #makes color more translucent. Can be set to any number lower than 1
+```
+
+## Pie Charts 
+Package: ggplot2, Dataset: diamonds 
+
+### Step 1: Assign colors to object 
+Video Link: [0:33](https://www.youtube.com/watch?v=bzRD_nvvIVI&t=0m33s)
+
+```{r}
+#create vector called 'colors' that has 7 different colors
+colors <- c("#FFFFFF","#F5FCC2","#E0ED87","#CCDE57", 
+            "#B3C732","#94A813","#718200")
+```
+
+### Step 2: Shape dataset to have 3 columns: categorical variable, count, and percentage   
+Video Link: [0:37](https://www.youtube.com/watch?v=bzRD_nvvIVI&t=0m37s)
+```{r}
+data <- diamonds %>%   
+  group_by(color) %>%   #categorical column 
+  summarize(
+    counts = n(),      #count column
+    percentage = n()/nrow(diamonds))  #percentage column
+```
+
+### Step 3: Create Pie Chart 
+Video Link: [0:56](https://www.youtube.com/watch?v=bzRD_nvvIVI&t=0m56s)
+```{r}
+pie <- ggplot(data = data, aes(x="", y = percentage, fill = color)) + 
+  geom_col(color = "black") +  #outline color of pie chart 
+  coord_polar("y", start = 0) +  #creates pie chart. Following code is formatting.
+  geom_text(aes(label = paste0(round(percentage*100), "%")), #adds % lables to pie slices
+            position = position_stack(vjust = 0.5)) + #positions labels
+  theme(panel.background = element_blank(),  #removes default background
+        axis.line = element_blank(),        #removes axis line   
+        axis.text= element_blank(),         #removes axis text
+        axis.ticks = element_blank(),       #removes axis ticks
+        axis.title=element_blank(),         #removes title
+        plot.title = element_text(hjust = 0.5, size = 18)) + #format for title
+  ggtitle("Pie chart of Diamond Color") + #title
+  scale_fill_manual(values = colors) 
+
+pie #call pie chart 
+
+
+```
+
+## Bubble Plots 
+Package: ggplot2, Datasets: mtcars 
+
+Note: A bubble plot is a scatter plot except it has a 3rd numeric variable mapped to a size aesthetic 
+Video Link: [0:05](https://www.youtube.com/watch?v=ZMmZPznXtmw&t=5s)
+
+### Subset mtcars dataset 
+Video Link: [0:25](https://www.youtube.com/watch?v=ZMmZPznXtmw&t=25s)
+```{r}
+data <- mtcars %>% mutate(
+  cyl = factor(cyl), #creates factor levels 4,6, and 8 for 'cyl' var. Needed for color grouping for code chunks below
+  Model = rownames(mtcars)) #creates 'Model' var that contains all the names of cars
+```
+
+### Create basic bubble plot
+Video Link: [0:30](https://www.youtube.com/watch?v=ZMmZPznXtmw&t=30s)
+```{r}
+plot1 <- data %>% 
+  ggplot(aes(x = wt, y = mpg, size = hp)) + #‘size = hp’ is the 3rd variable that makes this a bubble plot 
+  geom_point(alpha = 0.5) #'alpha .5' makes bubbles more transparent
+  
+plot1
+```
+
+### Add color and custom bubble size to bubble plot 
+Video Link: [1:09](https://www.youtube.com/watch?v=ZMmZPznXtmw&t=1m09s)
+```{r}
+#‘color = cyl’ adds color by grouping
+plot2 <- data %>% 
+  ggplot(aes(x = wt, y = mpg, size = hp, color = cyl, label = Model)) + 
+  geom_point(alpha = 0.5) + 
+  scale_size(range = c(.1, 15))
+
+plot2
+
+```
+
+### Convert ggplot bubble plot into plotly plot 
+Video Link: [1:40](https://www.youtube.com/watch?v=ZMmZPznXtmw&t=1m40s)
+
+```{r}
+#Plotly maps are interactive. You can filter data by clicking on the legend and obtain point-specific data by hovering the cursor over a bubble point .
+
+#Step 1: Load/install plotly
+library(plotly)
+
+#Step 2: Convert ggplot to plotly plot
+p <- ggplotly(plot2, width=500, height=500) %>%  #converts ggplot to plotly
+  layout(xaxis = list(range = c(1, 6)),  #formatting
+         yaxis = list(range = c(8, 35)), 
+         legend = list(x = 0.825, y = .975))
+
+p
+
+
+```
+
+
+
+# Data Management 
+
+
+## Using the Which and Order Command 
+Package: Base R, Dataset: iris 
+
+
+### Find a row’s values at a specified variable’s maximum value 
+Video Link: [0:23](https://www.youtube.com/watch?v=twx3ocWtj2k&t=23s)
+```{r}
+#Returns the entire row where the variable ‘Sepal’ is the highest value
+iris[which.max(iris$Sepal.Length), ] #Be sure to add a comma before the last bracket
+```
+
+### Find a row’s values at a specified variable’s minimum value 
+Video Link: [1:22](https://www.youtube.com/watch?v=twx3ocWtj2k&t=1m22s)
+```{r}
+#Returns the entire row where the variable ‘Sepal’ is the lowest value
+iris[which.min(iris$Sepal.Length), ]
+```
+
+
+### ‘order’ selects any location of a variable (i.e. 10th or 23rd highest value) 
+Video Link: [1:40](https://www.youtube.com/watch?v=twx3ocWtj2k&t=1m40s)
+```{r}
+#Returns the entire row where the variable ‘Sepal’ is the 11th highest
+iris[order(iris$Sepal.Length) [11], ]
+```
+
+## Using File Paths 
+(Package: Base R)
+
+### Best way use to specify file/directory path is with function ‘file.path’
+Video Link: [0:38](https://www.youtube.com/watch?v=M72DjKNPVDA&t=38s) 
+```{r}
+#change the words in quotation marks to a directory path on your computer 
+my_directory <- file.path("C:", "Users", "Joach", "Desktop")
+
+#my_directory can  be called or used in code to refer to the directory path
+```
+
+### Function file.path can also be used to specify a specific file 
+Video Link: [1:44](https://www.youtube.com/watch?v=M72DjKNPVDA&t=1m44s)
+```{r}
+#If ‘my_file.csv’ wasn’t added, this would specify a directory path
+My_file <- file.path("C:", "Users", "Joach", "Desktop", "my_file.csv")
+
+```
+
+ 
+
+## Handeling NAs in R 
+Package: Base R, Dataset: airquality 
+
+
+### Find missing values (NA) 
+Video Link: [1:05](https://www.youtube.com/watch?v=q8eR2suCyGk&t=1m05s)
+```{r}
+#Returns matrix where TRUE is a missing value, FALSE is a numeric value
+is.na(airquality)
+```
+
+### Count the amount of missing values in a data set 
+Video Link: [2:00](https://www.youtube.com/watch?v=q8eR2suCyGk&t=2m00s)
+```{r}
+#Returns the total amount of missing values 
+sum(is.na(airquality))
+```
+
+### Remove all missing values from a dataset 
+Video Link: [3:10](https://www.youtube.com/watch?v=q8eR2suCyGk&t=3m10s)
+```{r}
+#Deletes entire row where the missing value is present.
+na.omit(airquality)
+```
+
+### Calculate the mean of a variable where there is missing values 
+Video Link: [4:15]() 
+```{r}
+mean(airquality$Ozone, na.rm = TRUE) 
+```
+
+# Data Analysis
+
+## Using lapply and sapply 
+Package: Base R, Dataset: mtcars
+
+Note 1: If the data input is a column, sapply and lapply will apply the function to each value in the specified column. 
+
+Note 2: If the data input is a dataset, sapply and lapply will apply the function to each column.
+
+Note 3: Using these functions is often quicker than using a for loop. 
+
+### lapply runs a function on each element of a dataset and returns a list 
+Video Link: [0:38](https://www.youtube.com/watch?v=M72DjKNPVDA&t=38s)
+```{r}
+#Step 1: Load data (0:45)
+data <- mtcars 
+
+#Step 2: Create demo function (0:50)
+mpg_category <- function(mpg){ #creates function called mpg_categrory
+  if(mpg > 30){   #if mpg is greater than 30, "High" will be assigned
+    return("High")
+  } 
+  else if (mpg > 20){ #if mpg is less than 30 but greater than 20, "Medium"
+      return("Medium")
+  } else if(mpg <21){
+    return("Low")   #If not assigned "Medium" or "High", assign "Low" 
+  }
+  } 
+
+#Step 3: Use lapply (1:10)
+
+#applies function created above to every value of data$mpg and returns a list. 
+lapply(X = data$mpg, FUN = mpg_category)
+```
+
+### sapply runs a function on each element of a dataset and returns a vector or matrix 
+Video Link: [1:57](https://www.youtube.com/watch?v=34sbvhr_pm8&t=1m57s)
+```{r}
+#applies function to each value of mpg
+sapply(X = data$mpg, FUN = mpg_category) #returns a vector
+```
+
+
+
